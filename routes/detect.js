@@ -1,10 +1,6 @@
 const express = require('express');
 const multer = require('multer');
 const Groq = require('groq-sdk');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-
 const router = express.Router();
 
 const upload = multer({
@@ -55,7 +51,7 @@ If the image is not a plant leaf, respond with:
 }`;
 
     const response = await groq.chat.completions.create({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      model: 'llama-3.2-11b-vision-preview',
       messages: [
         {
           role: 'user',
