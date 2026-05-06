@@ -30,24 +30,49 @@ router.post('/detect', upload.single('image'), async (req, res) => {
     const base64Image = req.file.buffer.toString('base64');
     const mimeType = req.file.mimetype;
 
-    const prompt = `You are an expert plant pathologist AI. Analyze this plant leaf image and respond ONLY with a valid JSON object — no markdown, no backticks, no explanation outside the JSON.
+    const prompt = `You are a friendly plant disease expert helping Filipino farmers who are not scientists. Analyze this plant leaf image and respond ONLY with a valid JSON object — no markdown, no backticks, no extra text outside the JSON.
 
-Use this exact structure:
+Use simple everyday words. Write like you are giving advice to a neighbor farmer. Avoid scientific or chemical names — use brand names or descriptions that can be found in Philippine agri-supply stores (like CropLife, Bayer, Benomyl, Dithane M-45, Karate, Agrimycin, etc.).
+
+Use this exact JSON structure:
 {
-  "disease_name": "Name of the disease, or 'Healthy' if no disease is found",
+  "disease_name": "Common name of the disease in simple words, or 'Healthy' if no disease found",
   "confidence_level": "High / Medium / Low",
-  "symptoms_observed": "Brief description of visible symptoms in the image",
-  "recommended_treatment": "Specific treatment steps for this disease",
-  "preventive_measures": "How to prevent this disease in the future"
+  "symptoms_observed": "1 to 2 simple sentences describing what you see in the image, like explaining to a neighbor",
+  "what_to_do_now": [
+    "Step 1 as a simple tip",
+    "Step 2 as a simple tip",
+    "Step 3 as a simple tip",
+    "Step 4 as a simple tip"
+  ],
+  "what_to_buy": [
+    "Product 1 — short description of what it does and where to find it in the Philippines",
+    "Product 2 — short description"
+  ],
+  "what_to_tell_the_store": "One simple sentence in English that the farmer can say to the agri-store staff to buy the right product",
+  "preventive_measures": [
+    "Prevention tip 1 in simple words",
+    "Prevention tip 2 in simple words",
+    "Prevention tip 3 in simple words"
+  ]
 }
+
+Rules:
+- what_to_do_now must be an array of 3 to 5 short tips, starting with home remedies before sprays
+- what_to_buy must be an array of 1 to 3 products available in Philippine agri-stores
+- preventive_measures must be an array of 3 to 5 short tips
+- All tips must be short, clear, and actionable — one sentence each
+- Do not use the words "chlorothalonil", "mancozeb", or other hard chemical names — use brand names or simple descriptions instead
 
 If the image is not a plant leaf, respond with:
 {
   "disease_name": "Not a plant image",
   "confidence_level": "High",
   "symptoms_observed": "The uploaded image does not appear to be a plant leaf.",
-  "recommended_treatment": "Please upload a clear photo of a plant leaf.",
-  "preventive_measures": "N/A"
+  "what_to_do_now": ["Please take a clear photo of a plant leaf and try again."],
+  "what_to_buy": [],
+  "what_to_tell_the_store": "N/A",
+  "preventive_measures": []
 }`;
 
     const response = await groq.chat.completions.create({
@@ -69,7 +94,7 @@ If the image is not a plant leaf, respond with:
           ],
         },
       ],
-      max_tokens: 1024,
+      max_tokens: 1500,
     });
 
     const rawText = response.choices[0]?.message?.content?.trim();
